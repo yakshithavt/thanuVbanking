@@ -15,13 +15,6 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('investigate');
   const [scenarios, setScenarios] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState(null);
-
-  // Form Inputs
-  const [urlInput, setUrlInput] = useState('');
-  const [claimedSender, setClaimedSender] = useState('');
-  const [messageInput, setMessageInput] = useState('');
-  const [selectedFile, setSelectedFile] = useState(null);
 
   // Mock Fallback Results for 100% offline hackathon demo reliability
   const MOCK_RESULTS = {
@@ -200,7 +193,16 @@ export default function App() {
     }
   };
 
-  // Fetch scenarios on mount
+  // Pre-populate result by default so all rich UI gauges & evidence cards are visible immediately on load
+  const [result, setResult] = useState(MOCK_RESULTS.microsoft_phishing);
+
+  // Form Inputs default filled with Phishing scenario
+  const [urlInput, setUrlInput] = useState('https://microsoft-security-login-alert.example-domain.top/verify-account');
+  const [claimedSender, setClaimedSender] = useState('Microsoft Security Team <security@microsoft-security-login-alert.example>');
+  const [messageInput, setMessageInput] = useState('URGENT ATTENTION REQUIRED!\n\nYour Microsoft 365 Account has been flagged for suspicious login activity. Verify credentials immediately: https://microsoft-security-login-alert.example-domain.top/verify-account');
+  const [selectedFile, setSelectedFile] = useState(null);
+
+  // Fetch scenarios list on mount
   useEffect(() => {
     fetch('/api/scenarios')
       .then(res => res.json())
@@ -239,7 +241,6 @@ export default function App() {
     setLoading(true);
     setActiveTab('investigate');
 
-    // Smooth auto-scroll to results after loading completes
     const triggerScroll = () => {
       setTimeout(() => {
         document.getElementById('results-dashboard')?.scrollIntoView({ behavior: 'smooth' });
@@ -248,7 +249,6 @@ export default function App() {
 
     try {
       if (scenarioId && MOCK_RESULTS[scenarioId]) {
-        // Use mock data for instant 100% reliable demo
         setResult(MOCK_RESULTS[scenarioId]);
         triggerScroll();
         setLoading(false);
@@ -285,7 +285,6 @@ export default function App() {
       triggerScroll();
     } catch (error) {
       console.error('Investigation API fallback:', error);
-      // Fallback to mock result if backend offline
       const fallbackKey = scenarioId || 'microsoft_phishing';
       setResult(MOCK_RESULTS[fallbackKey] || MOCK_RESULTS.microsoft_phishing);
       triggerScroll();
@@ -335,14 +334,14 @@ export default function App() {
             className={`px-4 py-2 rounded-lg flex items-center gap-2 transition-all ${activeTab === 'investigate' ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/40 shadow-glow-cyan' : 'text-slate-400 hover:text-white'}`}
           >
             <Search className="w-4 h-4" />
-            <span>Investigate</span>
+            <span>Investigate Console</span>
           </button>
           <button
             onClick={() => setActiveTab('vault')}
             className={`px-4 py-2 rounded-lg flex items-center gap-2 transition-all ${activeTab === 'vault' ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/40 shadow-glow-cyan' : 'text-slate-400 hover:text-white'}`}
           >
             <Database className="w-4 h-4" />
-            <span>Evidence Vault</span>
+            <span>Evidence Vault ({result?.evidence_vault?.length || 4})</span>
           </button>
           <button
             onClick={() => setActiveTab('architecture')}
@@ -464,7 +463,7 @@ export default function App() {
               </div>
             </div>
 
-            {/* Results Dashboard View */}
+            {/* Results Dashboard View - Populated By Default */}
             {result && (
               <div id="results-dashboard" className="space-y-6 transition-all duration-500">
                 {/* Result Header Bar */}
@@ -488,6 +487,9 @@ export default function App() {
                   <ThreatScoreMeter
                     score={result.threat_score}
                     verdict={result.overall_verdict}
+                    urlScore={result.threat_score >= 80 ? 90 : result.threat_score >= 50 ? 60 : 0}
+                    msgScore={result.threat_score >= 80 ? 85 : result.threat_score >= 50 ? 55 : 0}
+                    identScore={result.threat_score >= 80 ? 95 : result.threat_score >= 50 ? 70 : 0}
                   />
 
                   {/* Why? Breakdown */}
@@ -535,23 +537,7 @@ export default function App() {
         {/* TAB 2: EVIDENCE VAULT VIEW */}
         {activeTab === 'vault' && (
           <div className="space-y-6">
-            {result ? (
-              <EvidenceVault cards={result.evidence_vault} />
-            ) : (
-              <div className="glass-panel p-12 rounded-2xl border border-slate-800 text-center space-y-4">
-                <Database className="w-12 h-12 text-slate-600 mx-auto" />
-                <h3 className="text-lg font-bold text-white">Evidence Vault is Empty</h3>
-                <p className="text-xs text-slate-400 font-mono max-w-md mx-auto">
-                  Run an investigation in the Investigate tab or choose a 1-click preset scenario to populate forensic evidence cards.
-                </p>
-                <button
-                  onClick={() => handleSelectScenario('microsoft_phishing')}
-                  className="px-6 py-2.5 bg-cyan-500 text-slate-950 font-bold rounded-xl text-xs uppercase tracking-wider shadow-glow-cyan"
-                >
-                  Load Sample Evidence (Microsoft Phishing Scenario)
-                </button>
-              </div>
-            )}
+            <EvidenceVault cards={result?.evidence_vault || []} />
           </div>
         )}
 
