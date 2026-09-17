@@ -1,0 +1,10 @@
+{
+  "scenario": "job_scam",
+  "name": "Fake Internship Fee Payment Scam",
+  "sender": "Google Careers HR <hr@internship-portal-verify.click>",
+  "subject": "Internship Shortlist Notification",
+  "url": "https://internship-portal-verify.click/pay-fee",
+  "body": "Congratulations! Your application for the Summer AI Engineering Internship has been shortlisted.\n\nTo confirm your seat and receive your offer letter, please pay a mandatory verification badge fee of ₹499 within 6 hours.\n\nPay fee immediately at: https://internship-portal-verify.click/pay-fee",
+  "expected_verdict": "SUSPICIOUS",
+  "expected_score": 78
+}

@@ -1,0 +1,10 @@
+{
+  "scenario": "safe_github",
+  "name": "Legitimate GitHub PR Notification",
+  "sender": "GitHub <notifications@github.com>",
+  "subject": "Pull Request Approved #42",
+  "url": "https://github.com/notifications",
+  "body": "Hi developer,\n\nA pull request #42 in your repository 'venkathanu-ai' has been successfully approved by reviewer.\nYou can review the diff and merge when ready.\n\nView pull request: https://github.com/notifications",
+  "expected_verdict": "SAFE",
+  "expected_score": 0
+}

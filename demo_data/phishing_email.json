@@ -1,0 +1,10 @@
+{
+  "scenario": "phishing_email",
+  "name": "Fake Microsoft 365 Account Security Alert",
+  "sender": "security@microsoft-security-login-alert.example",
+  "subject": "URGENT: Verify your account within 24 hours",
+  "url": "https://microsoft-security-login-alert.example-domain.top/verify-account",
+  "body": "URGENT ATTENTION REQUIRED!\n\nYour Microsoft 365 Business Account has been flagged for suspicious login activity from an unrecognized IP address. Your account access will be PERMANENTLY SUSPENDED within 24 hours unless you verify your password credentials immediately.\n\nClick here to resolve and verify: https://microsoft-security-login-alert.example-domain.top/verify-account",
+  "expected_verdict": "HIGH",
+  "expected_score": 94
+}
