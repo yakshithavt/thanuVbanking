@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   ShieldAlert, ShieldCheck, Shield, Search, FileText, Upload, 
   Cpu, Database, Sparkles, AlertOctagon, CheckCircle2, ArrowRight,
-  RefreshCw, Terminal, Layers
+  RefreshCw, Terminal, Layers, Download, Radio, Target, Activity
 } from 'lucide-react';
 
 import ThreatScoreMeter from './components/ThreatScoreMeter';
@@ -10,6 +10,9 @@ import InvestigationTimeline from './components/InvestigationTimeline';
 import EvidenceVault from './components/EvidenceVault';
 import SecurityReviewerPanel from './components/SecurityReviewerPanel';
 import ScenarioSelector from './components/ScenarioSelector';
+import ThreatRadarMap from './components/ThreatRadarMap';
+import MitreAttackCard from './components/MitreAttackCard';
+import ThreatComparisonMatrix from './components/ThreatComparisonMatrix';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('investigate');
@@ -27,7 +30,7 @@ export default function App() {
         "Lookalike spoof domain detected: 'microsoft-security-login-alert.example-domain.top'",
         "Claimed organization 'Microsoft' mismatch with domain 'microsoft-security-login-alert.example-domain.top'",
         "High-pressure urgency language & account suspension threat detected",
-        "Direct credential harvester pattern detected"
+        "Direct credential harvester pattern targeting user password credentials"
       ],
       recommended_action: "🚨 CRITICAL SECURITY ADVISORY:\n• Do NOT click links or enter passwords/credentials.\n• Do NOT send any payments or processing fees.\n• Report this message to your security team or mail provider immediately.",
       reviewer_result: {
@@ -152,6 +155,47 @@ export default function App() {
         }
       ]
     },
+    paypal_scam: {
+      investigation_id: "INV-PYPL-8803",
+      timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
+      threat_score: 88,
+      overall_verdict: "HIGH",
+      summary_why: [
+        "Unsolicited invoice payment trap impersonating PayPal Service",
+        "Sender address 'support@paypal-billing-notice.xyz' uses high-risk TLD .xyz",
+        "Direct financial wire transfer and urgency pressure keywords detected"
+      ],
+      recommended_action: "🚨 CRITICAL ADVISORY:\n• Do NOT call numbers listed or transfer money.\n• Report fake invoice directly to spoof@paypal.com.",
+      reviewer_result: {
+        verdict: "HIGH",
+        confidence: 92,
+        review_status: "VERIFIED MALICIOUS — Invoice fraud & domain spoofing confirmed.",
+        reasoning: "Security Reviewer audited invoice origin against authentic PayPal infrastructure. Mismatch confirmed.",
+        counter_arguments_evaluated: ["Audited merchant invoice legitimacy: Domain spoofing verified."]
+      },
+      timeline_steps: [
+        { step: 1, title: "Investigation Started", agent: "System Orchestrator", status: "COMPLETED", detail: "Target content submitted for threat investigation (ID: INV-PYPL-8803)" },
+        { step: 2, title: "URL & Domain Analysis", agent: "Agent 1 — URL Investigator", status: "COMPLETED", risk: "HIGH", detail: "Domain: 'paypal-billing-notice.xyz' | Risk: HIGH" },
+        { step: 3, title: "Social Engineering Analysis", agent: "Agent 2 — Message Investigator", status: "COMPLETED", risk: "HIGH", detail: "Financial Trap: True | Urgency: True" },
+        { step: 4, title: "Identity Impersonation Audit", agent: "Agent 3 — Identity Agent", status: "COMPLETED", risk: "HIGH", detail: "Claimed: PayPal | Domain: paypal-billing-notice.xyz" },
+        { step: 5, title: "OCR Visual Scan", agent: "Agent 4 — Screenshot Agent", status: "COMPLETED", risk: "SAFE", detail: "Extracted URLs: 0" },
+        { step: 6, title: "Security Reviewer Verification", agent: "Agent 5 — Security Reviewer", status: "COMPLETED", risk: "HIGH", detail: "Review Status: VERIFIED MALICIOUS" }
+      ],
+      evidence_vault: [
+        {
+          id: "EVID-001",
+          evidence_type: "Domain / URL",
+          title: "Domain Impersonation Analysis",
+          signal: "Lookalike PayPal Billing Domain",
+          claimed_brand: "PayPal",
+          observed_data: "paypal-billing-notice.xyz",
+          source_agent: "Agent 1 — URL Investigator",
+          confidence: 94,
+          severity: "HIGH",
+          description: "High-risk TLD .xyz used for brand impersonation."
+        }
+      ]
+    },
     safe_github: {
       investigation_id: "INV-SAFE-0001",
       timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
@@ -193,7 +237,7 @@ export default function App() {
     }
   };
 
-  // Pre-populate result by default so all rich UI gauges & evidence cards are visible immediately on load
+  // Pre-populate result state on initial load
   const [result, setResult] = useState(MOCK_RESULTS.microsoft_phishing);
 
   // Form Inputs default filled with Phishing scenario
@@ -226,6 +270,14 @@ export default function App() {
             message_text: 'Congratulations! Your AI Engineering Internship is shortlisted. Pay verification fee ₹499 immediately: https://internship-portal-verify.click/pay-fee'
           },
           {
+            id: 'paypal_scam',
+            title: '🟠 Fake PayPal Invoice Fraud',
+            type: 'Financial Fraud',
+            url: 'https://paypal-billing-notice.xyz/pay-invoice',
+            claimed_sender: 'PayPal Support <support@paypal-billing-notice.xyz>',
+            message_text: 'INVOICE UNPAID: $499.00 payment pending for recent purchase. Call support immediately to dispute: https://paypal-billing-notice.xyz/pay-invoice'
+          },
+          {
             id: 'safe_github',
             title: '🟢 Legitimate GitHub Notification',
             type: 'Safe Notification',
@@ -236,6 +288,16 @@ export default function App() {
         ]);
       });
   }, []);
+
+  const handleDownloadReport = () => {
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(result, null, 2));
+    const downloadAnchor = document.createElement('a');
+    downloadAnchor.setAttribute("href", dataStr);
+    downloadAnchor.setAttribute("download", `Venkathanu_Forensic_Report_${result.investigation_id}.json`);
+    document.body.appendChild(downloadAnchor);
+    downloadAnchor.click();
+    downloadAnchor.remove();
+  };
 
   const handleRunInvestigation = async (scenarioId = null) => {
     setLoading(true);
@@ -308,6 +370,25 @@ export default function App() {
 
   return (
     <div className="min-h-screen flex flex-col font-sans antialiased text-slate-100 cyber-grid">
+      {/* System Telemetry Top Ticker */}
+      <div className="bg-slate-950 border-b border-slate-800/80 px-6 py-1.5 flex items-center justify-between text-[10px] font-mono text-slate-400">
+        <div className="flex items-center gap-3">
+          <span className="flex items-center gap-1.5 text-emerald-400">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+            SYSTEM ONLINE
+          </span>
+          <span className="text-slate-600">|</span>
+          <span>MULTI-AGENT ENGINE v1.4</span>
+          <span className="text-slate-600 font-normal">|</span>
+          <span className="text-cyan-400">5/5 AGENTS ACTIVE & SYNCHRONIZED</span>
+        </div>
+        <div className="hidden sm:flex items-center gap-4">
+          <span>LATENCY: &lt; 1.2s</span>
+          <span>HEURISTIC ENGINE: ACTIVE</span>
+          <span className="text-purple-400">SELF-VERIFICATION: ENABLED</span>
+        </div>
+      </div>
+
       {/* Dashboard Top Header */}
       <header className="sticky top-0 z-50 glass-panel border-b border-slate-800/80 px-6 py-4 flex flex-col md:flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-3">
@@ -317,8 +398,8 @@ export default function App() {
           <div>
             <h1 className="text-xl font-extrabold tracking-tight text-white flex items-center gap-2">
               <span>Venkathanu.Ai</span>
-              <span className="text-xs px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 font-mono font-normal">
-                v1.0 Hackathon
+              <span className="text-[10px] px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 font-mono font-normal">
+                ENTERPRISE WAR ROOM
               </span>
             </h1>
             <p className="text-xs text-slate-400 font-mono">
@@ -348,7 +429,7 @@ export default function App() {
             className={`px-4 py-2 rounded-lg flex items-center gap-2 transition-all ${activeTab === 'architecture' ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/40 shadow-glow-cyan' : 'text-slate-400 hover:text-white'}`}
           >
             <Layers className="w-4 h-4" />
-            <span>Agent Pipeline</span>
+            <span>Agent Pipeline & MITRE</span>
           </button>
         </div>
       </header>
@@ -474,16 +555,27 @@ export default function App() {
                     <span className="text-slate-600">|</span>
                     <span className="text-slate-400">{result.timestamp}</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-slate-400">OVERALL VERDICT:</span>
-                    <span className={`px-3 py-1 rounded-full font-bold uppercase tracking-wider ${result.overall_verdict === 'HIGH' || result.overall_verdict === 'MALICIOUS' ? 'bg-red-500/20 text-red-400 border border-red-500/30' : result.overall_verdict === 'SUSPICIOUS' ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'}`}>
-                      {result.overall_verdict}
-                    </span>
+                  
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={handleDownloadReport}
+                      className="px-3.5 py-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-200 rounded-lg flex items-center gap-1.5 transition-colors"
+                    >
+                      <Download className="w-3.5 h-3.5 text-cyan-400" />
+                      <span>Download Forensic JSON</span>
+                    </button>
+
+                    <div className="flex items-center gap-2">
+                      <span className="text-slate-400">OVERALL VERDICT:</span>
+                      <span className={`px-3 py-1 rounded-full font-bold uppercase tracking-wider ${result.overall_verdict === 'HIGH' || result.overall_verdict === 'MALICIOUS' ? 'bg-red-500/20 text-red-400 border border-red-500/30' : result.overall_verdict === 'SUSPICIOUS' ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'}`}>
+                        {result.overall_verdict}
+                      </span>
+                    </div>
                   </div>
                 </div>
 
-                {/* Score Gauge & Action Recommendation Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* Threat Radar & Threat Gauge Grid */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   <ThreatScoreMeter
                     score={result.threat_score}
                     verdict={result.overall_verdict}
@@ -491,7 +583,11 @@ export default function App() {
                     msgScore={result.threat_score >= 80 ? 85 : result.threat_score >= 50 ? 55 : 0}
                     identScore={result.threat_score >= 80 ? 95 : result.threat_score >= 50 ? 70 : 0}
                   />
+                  <ThreatRadarMap verdict={result.overall_verdict} />
+                </div>
 
+                {/* Why? & Recommended Actions Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Why? Breakdown */}
                   <div className="glass-panel p-6 rounded-2xl border border-slate-800 space-y-3">
                     <h3 className="text-sm font-bold text-white flex items-center gap-2">
@@ -520,6 +616,9 @@ export default function App() {
                   </div>
                 </div>
 
+                {/* MITRE ATT&CK Framework TTP Card */}
+                <MitreAttackCard verdict={result.overall_verdict} />
+
                 {/* Security Reviewer Self-Verification Loop Panel */}
                 <SecurityReviewerPanel reviewerResult={result.reviewer_result} />
 
@@ -541,9 +640,11 @@ export default function App() {
           </div>
         )}
 
-        {/* TAB 3: AGENT PIPELINE ARCHITECTURE */}
+        {/* TAB 3: AGENT PIPELINE ARCHITECTURE & COMPARISON */}
         {activeTab === 'architecture' && (
           <div className="space-y-6">
+            <ThreatComparisonMatrix />
+
             <div className="glass-panel p-8 rounded-2xl border border-slate-800 space-y-6">
               <div>
                 <h2 className="text-2xl font-extrabold text-white flex items-center gap-3">
